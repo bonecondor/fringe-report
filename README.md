@@ -12,12 +12,13 @@ Notes on interesting things, people talked to lately, and little-more-than-scrat
 
    ```
    ---
-   title: what the dispatch is about
+   title: what the post is about
    tags: person, musing
+   time: 9:05 pm
    ---
    ```
 
-   Everything is optional — a bare paragraph is a valid dispatch. Dispatches are numbered chronologically at build time (DISPATCH 001, 002, ...). Each tag gets its own page at `/tag/<tag>.html`.
+   Everything is optional — a bare paragraph is a valid post. Posts are numbered chronologically at build time (FR 0001, FR 0002, ...); a title renders as "FR 0002: the title". Include `time:` since posts are dated by filename only. Each tag gets its own page at `/tag/<tag>.html`.
 3. Build and publish:
 
    ```
