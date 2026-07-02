@@ -32,7 +32,7 @@ POSTS_DIR = ROOT / "posts"
 SITE_DIR = ROOT / "docs"  # GitHub Pages serves from /docs on the main branch
 STYLE_SRC = ROOT / "style.css"
 
-SITE_TITLE = "FRINGE REPORT"
+SITE_TITLE = "fringe report"
 DOMAIN = "fringe.report"
 
 
@@ -193,14 +193,8 @@ def page(title: str, body: str, depth: int = 0) -> str:
 <link rel="stylesheet" href="{prefix}style.css">
 </head>
 <body>
-<header class="masthead">
-<p class="rule">* * *</p>
-<a href="{prefix}index.html">{html.escape(SITE_TITLE)}</a>
-<p class="rule">* * *</p>
-</header>
-<main>
+<h1><a href="{prefix}index.html">{html.escape(SITE_TITLE)}</a></h1>
 {body}
-</main>
 </body>
 </html>
 """
@@ -208,24 +202,22 @@ def page(title: str, body: str, depth: int = 0) -> str:
 
 def post_article(post: dict, depth: int = 0, link_heading: bool = False) -> str:
     prefix = "../" * depth
-    number = f"DISPATCH {post['number']:03d}"
-    heading = number + (f": {html.escape(post['title']).upper()}" if post["title"] else "")
-    if link_heading:
-        heading = f'<a href="{prefix}posts/{post["slug"]}.html">{heading}</a>'
-    stamp = post["date"].strftime("%B %-d, %Y").upper()
+    stamp = post["date"].strftime("%B %-d, %Y")
     if post.get("time"):
-        stamp += f" · {post['time']}"
-    tags = " ".join(
-        f'<a class="tag" href="{prefix}tag/{tag_slug(t)}.html">[{html.escape(t).upper()}]</a>'
+        stamp += f", {post['time']}"
+    if link_heading:
+        stamp = f'<a href="{prefix}posts/{post["slug"]}.html">{stamp}</a>'
+    tags = ", ".join(
+        f'<a href="{prefix}tag/{tag_slug(t)}.html">{html.escape(t)}</a>'
         for t in post["tags"]
     )
-    return (
-        '<article class="post">\n'
-        f"<h2>{heading}</h2>\n"
-        f'<p class="stamp">{stamp}{("  " + tags) if tags else ""}</p>\n'
-        f"{post['html']}\n"
-        "</article>"
-    )
+    parts = ["<article>"]
+    if post["title"]:
+        parts.append(f"<h3>{html.escape(post['title'])}</h3>")
+    parts.append(f'<p class="meta">{stamp}{(" · " + tags) if tags else ""}</p>')
+    parts.append(post["html"])
+    parts.append("</article>\n<hr>")
+    return "\n".join(parts)
 
 
 def build() -> None:
@@ -233,9 +225,6 @@ def build() -> None:
         filter(None, (parse_post(p) for p in POSTS_DIR.glob("*.md"))),
         key=lambda p: (p["date"], p["slug"]),
     )
-    # Number chronologically: oldest is DISPATCH 001.
-    for i, post in enumerate(posts, start=1):
-        post["number"] = i
     posts.reverse()  # newest first for display
 
     if SITE_DIR.exists():
@@ -246,14 +235,11 @@ def build() -> None:
     shutil.copy(STYLE_SRC, SITE_DIR / "style.css")
     (SITE_DIR / "CNAME").write_text(DOMAIN + "\n")
 
-    if posts:
-        feed = "\n".join(post_article(p, link_heading=True) for p in posts)
-    else:
-        feed = '<p class="stamp">NO DISPATCHES YET.</p>'
+    feed = "\n".join(post_article(p, link_heading=True) for p in posts)
     (SITE_DIR / "index.html").write_text(page(SITE_TITLE, feed), encoding="utf-8")
 
     for p in posts:
-        title = f"DISPATCH {p['number']:03d} — {SITE_TITLE}"
+        title = f"{p['title'] or p['date'].isoformat()} - {SITE_TITLE}"
         (SITE_DIR / "posts" / f"{p['slug']}.html").write_text(
             page(title, post_article(p, depth=1), depth=1), encoding="utf-8"
         )
@@ -263,13 +249,13 @@ def build() -> None:
         for t in p["tags"]:
             tags.setdefault(tag_slug(t), []).append(p)
     for slug, tagged in tags.items():
-        body = f'<p class="stamp">FILED UNDER [{html.escape(slug).upper()}]</p>\n'
+        body = f"<h3>{html.escape(slug)}</h3>\n"
         body += "\n".join(post_article(p, depth=1, link_heading=True) for p in tagged)
         (SITE_DIR / "tag" / f"{slug}.html").write_text(
-            page(f"[{slug.upper()}] — {SITE_TITLE}", body, depth=1), encoding="utf-8"
+            page(f"{slug} - {SITE_TITLE}", body, depth=1), encoding="utf-8"
         )
 
-    print(f"built {len(posts)} dispatch(es), {len(tags)} tag(s) → {SITE_DIR}")
+    print(f"built {len(posts)} post(s), {len(tags)} tag(s) → {SITE_DIR}")
 
 
 if __name__ == "__main__":
