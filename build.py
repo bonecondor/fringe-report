@@ -194,7 +194,7 @@ def page(title: str, body: str, depth: int = 0) -> str:
 </head>
 <body>
 <h1><a href="{prefix}index.html">{html.escape(SITE_TITLE)}</a></h1>
-<p class="meta">this is too normal, take me to the <a href="https://foid.report">foid report</a>, i want <a href="https://trysoup.xyz">soup</a></p>
+<p class="meta">this is too normal, take me to the <a href="https://foid.report">foid report</a>. i want <a href="https://trysoup.xyz">soup</a></p>
 {body}
 </body>
 </html>
