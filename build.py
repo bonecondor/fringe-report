@@ -202,18 +202,20 @@ def page(title: str, body: str, depth: int = 0) -> str:
 
 def post_article(post: dict, depth: int = 0, link_heading: bool = False) -> str:
     prefix = "../" * depth
+    heading = f"FR {post['number']:04d}"
+    if post["title"]:
+        heading += f": {html.escape(post['title'])}"
+    if link_heading:
+        heading = f'<a href="{prefix}posts/{post["slug"]}.html">{heading}</a>'
     stamp = post["date"].strftime("%B %-d, %Y")
     if post.get("time"):
         stamp += f", {post['time']}"
-    if link_heading:
-        stamp = f'<a href="{prefix}posts/{post["slug"]}.html">{stamp}</a>'
     tags = ", ".join(
         f'<a href="{prefix}tag/{tag_slug(t)}.html">{html.escape(t)}</a>'
         for t in post["tags"]
     )
     parts = ["<article>"]
-    if post["title"]:
-        parts.append(f"<h3>{html.escape(post['title'])}</h3>")
+    parts.append(f"<h3>{heading}</h3>")
     parts.append(f'<p class="meta">{stamp}{(" · " + tags) if tags else ""}</p>')
     parts.append(post["html"])
     parts.append("</article>\n<hr>")
@@ -225,6 +227,9 @@ def build() -> None:
         filter(None, (parse_post(p) for p in POSTS_DIR.glob("*.md"))),
         key=lambda p: (p["date"], p["slug"]),
     )
+    # Number chronologically: oldest is FR 0001.
+    for i, post in enumerate(posts, start=1):
+        post["number"] = i
     posts.reverse()  # newest first for display
 
     if SITE_DIR.exists():
@@ -239,7 +244,7 @@ def build() -> None:
     (SITE_DIR / "index.html").write_text(page(SITE_TITLE, feed), encoding="utf-8")
 
     for p in posts:
-        title = f"{p['title'] or p['date'].isoformat()} - {SITE_TITLE}"
+        title = f"FR {p['number']:04d} - {SITE_TITLE}"
         (SITE_DIR / "posts" / f"{p['slug']}.html").write_text(
             page(title, post_article(p, depth=1), depth=1), encoding="utf-8"
         )
