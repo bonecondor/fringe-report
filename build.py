@@ -2,7 +2,7 @@
 """
 fringe-report — a tiny static generator for fringe.report. No dependencies.
 Reads markdown files from posts/ and writes a static site to docs/.
-Run it with:  python3 build.py
+Run it with:  python3 build.py  (needs Python 3.9+)
 
 How posting works:
   - Make a file in posts/ named by date, e.g.  posts/2026-07-01.md
@@ -20,6 +20,8 @@ How posting works:
 Multiple posts in one day? Add a suffix:  posts/2026-07-01-two.md
 Tags are free-form; each tag gets its own page at /tag/<tag>.html.
 """
+
+from __future__ import annotations
 
 import html
 import re
@@ -196,6 +198,7 @@ def page(title: str, body: str, depth: int = 0) -> str:
 <h1><a href="{prefix}index.html">{html.escape(SITE_TITLE)}</a></h1>
 <p class="meta">this is too normal, take me to the <a href="https://foid.report">foid report</a>. i want <a href="https://trysoup.xyz">soup</a></p>
 {body}
+<script data-goatcounter="https://fringe.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
 """
